@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+
+# SQLite Databases
+*.sqlite
+*.db
+
+# Logs
+*.log
+
+# VS Code Local History
+.history/
+
+# OS Files
+.DS_Store
+Thumbs.db
