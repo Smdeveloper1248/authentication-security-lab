@@ -1,8 +1,31 @@
 const path = require('path');
+const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 
 const dbPath = path.join(__dirname, 'auth-lab.sqlite');
 const db = new sqlite3.Database(dbPath);
+const SALT_ROUNDS = 12;
+const DEMO_PASSWORD = 'password123';
+
+function isBcryptHash(value) {
+  return typeof value === 'string' && /^\$2[aby]\$\d{2}\$/.test(value);
+}
+
+function hashPlainTextPasswords() {
+  db.all('SELECT id, password FROM users', (err, users) => {
+    if (err) {
+      console.error('Failed to inspect user passwords:', err.message);
+      return;
+    }
+
+    users
+      .filter((user) => !isBcryptHash(user.password))
+      .forEach((user) => {
+        const passwordHash = bcrypt.hashSync(user.password, SALT_ROUNDS);
+        db.run('UPDATE users SET password = ? WHERE id = ?', [passwordHash, user.id]);
+      });
+  });
+}
 
 db.serialize(() => {
   db.run(`
@@ -39,16 +62,17 @@ db.serialize(() => {
         db.run('ALTER TABLE users_email_migration RENAME TO users');
         db.run(
           'INSERT OR IGNORE INTO users (email, password) VALUES (?, ?)',
-          ['student@example.test', 'password123']
+          ['student@example.test', bcrypt.hashSync(DEMO_PASSWORD, SALT_ROUNDS)],
+          hashPlainTextPasswords
         );
       });
       return;
     }
 
-    // Intentionally insecure seed account for the authentication security lab.
     db.run(
       'INSERT OR IGNORE INTO users (email, password) VALUES (?, ?)',
-      ['student@example.test', 'password123']
+      ['student@example.test', bcrypt.hashSync(DEMO_PASSWORD, SALT_ROUNDS)],
+      hashPlainTextPasswords
     );
   });
 });
