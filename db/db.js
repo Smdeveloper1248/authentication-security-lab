@@ -1,7 +1,7 @@
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
-const dbPath = path.join(__dirname, 'auth-lab.sqlite');
+const dbPath = path.join(__dirname, 'auth-lab-vulnerable.sqlite');
 const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
