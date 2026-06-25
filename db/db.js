@@ -2,7 +2,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 
-const dbPath = path.join(__dirname, 'auth-lab.sqlite');
+const dbPath = path.join(__dirname, 'auth-lab-secure.sqlite');
 const db = new sqlite3.Database(dbPath);
 const SALT_ROUNDS = 12;
 const DEMO_PASSWORD = 'password123';
