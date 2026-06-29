@@ -1,19 +1,15 @@
 const express = require('express');
+const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Authentication Security Lab',
-    demoUser: {
-      email: 'student@example.test',
-      password: 'password123',
-    },
-  });
+  res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });
 
 app.use('/api/auth', authRoutes);
