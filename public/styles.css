@@ -96,3 +96,20 @@ button:disabled {
 .form-message.error {
   color: #b3261e;
 }
+
+.auth-link {
+  margin: 16px 0 0;
+  color: #5c6f82;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-link a {
+  color: #1f6feb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
