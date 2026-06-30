@@ -10,28 +10,39 @@ router.post('/signup', (req, res) => {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
 
-  // Intentionally insecure: this stores the password exactly as submitted.
-  db.run(
-    'INSERT INTO users (email, password) VALUES (?, ?)',
-    [email, password],
-    function onInsert(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(409).json({ error: 'Email is already registered.' });
+  // Intentionally insecure: this reveals whether an email is already registered.
+  db.get('SELECT id FROM users WHERE email = ?', [email], (lookupErr, existingUser) => {
+    if (lookupErr) {
+      return res.status(500).json({ error: 'Database error.' });
+    }
+
+    if (existingUser) {
+      return res.status(409).json({ error: 'Email is already registered.' });
+    }
+
+    // Intentionally insecure: this stores the password exactly as submitted.
+    return db.run(
+      'INSERT INTO users (email, password) VALUES (?, ?)',
+      [email, password],
+      function onInsert(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(409).json({ error: 'Email is already registered.' });
+          }
+
+          return res.status(500).json({ error: 'Database error.' });
         }
 
-        return res.status(500).json({ error: 'Database error.' });
+        return res.status(201).json({
+          message: 'Signup successful.',
+          user: {
+            id: this.lastID,
+            email,
+          },
+        });
       }
-
-      return res.status(201).json({
-        message: 'Signup successful.',
-        user: {
-          id: this.lastID,
-          email,
-        },
-      });
-    }
-  );
+    );
+  });
 });
 
 router.post('/login', (req, res) => {
@@ -46,9 +57,14 @@ router.post('/login', (req, res) => {
       return res.status(500).json({ error: 'Database error.' });
     }
 
+    // Intentionally insecure: this reveals whether the submitted email exists.
+    if (!user) {
+      return res.status(404).json({ error: 'Email is not registered.' });
+    }
+
     // Intentionally insecure: passwords are stored and compared as plain text.
-    if (!user || user.password !== password) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Password is incorrect.' });
     }
 
     return res.json({
