@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const db = require('../../db/db');
 
 const SALT_ROUNDS = 12;
+const DUMMY_PASSWORD_HASH = '$2b$12$2fDGc40/IvDcfXdKQobPjOhw64H4bVuKKSCZEZKjZFIcMYKHn6Due';
 
 function signup(req, res) {
   const { email, password } = req.body;
@@ -51,16 +52,14 @@ function login(req, res) {
       return res.status(500).json({ error: 'Database error.' });
     }
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
-    }
+    const passwordHash = user ? user.password : DUMMY_PASSWORD_HASH;
 
-    return bcrypt.compare(password, user.password, (compareErr, isMatch) => {
+    return bcrypt.compare(password, passwordHash, (compareErr, isMatch) => {
       if (compareErr) {
         return res.status(500).json({ error: 'Failed to verify password.' });
       }
 
-      if (!isMatch) {
+      if (!user || !isMatch) {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
 
